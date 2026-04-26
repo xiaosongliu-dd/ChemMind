@@ -1,0 +1,97 @@
+# ChemMind tool configuration
+# Set enabled: false to disable a tool without removing it from the registry.
+
+structure:
+  boltz2:
+    enabled: true
+    use_nim: true                      # set false to use local weights
+    nim_api_key_env: NVIDIA_API_KEY
+    n_samples: 5
+  esmfold:
+    enabled: true
+    hf_model: "facebook/esmfold_v1"
+  colabfold:
+    enabled: true
+    use_server: false                  # true = ColabFold API, false = local mmseqs2
+  pocket_detect:
+    enabled: true
+    backends: [p2rank, fpocket]        # tried in order
+
+biologics:
+  rfantibody:
+    enabled: true
+    weights_dir: ~/.cache/rfdiffusion/weights
+    default_n_designs: 50
+  abdiffuser:
+    enabled: true
+  igfold:
+    enabled: true
+  abodybuilder3:
+    enabled: true
+  proteinmpnn:
+    enabled: true
+    num_seq_per_target: 8
+  bindcraft:
+    enabled: true
+  rfdiffusion_pep:
+    enabled: true
+
+generation:
+  diffsbdd:
+    enabled: true
+  reinvent4:
+    enabled: true
+    scoring_components: [docking_score, qed, sa_score, admet]
+  molgpt:
+    enabled: true
+
+docking:
+  gnina:
+    enabled: true
+    exhaustiveness: 8
+  autodock_gpu:
+    enabled: true
+    nrun: 20
+  diffdock:
+    enabled: true
+
+md_fep:
+  openmm:
+    enabled: true
+    platform: CUDA
+    forcefields: [amber14-all.xml, amber14/tip3pfb.xml]
+  fep_openfe:
+    enabled: true
+    n_replicas: 11
+    simulation_time_ns: 5.0
+  mdanalysis:
+    enabled: true
+
+admet:
+  rdkit_props:
+    enabled: true
+    filters: [lipinski, pains, brenk, nih]
+  admetlab3:
+    enabled: true
+    api_key_env: ADMETLAB_API_KEY
+  deeppurpose:
+    enabled: true
+
+data:
+  askcos:
+    enabled: true
+    api_url: https://askcos.mit.edu/api/v2
+  chembl:
+    enabled: true
+    version: "34"
+  pdb_fetch:
+    enabled: true
+    local_mirror: null                 # set path to local RCSB mirror if available
+
+agent:
+  model: claude-sonnet-4-6
+  temperature: 0.2
+  max_steps: 40
+  max_tool_retries: 3
+  memory_persist_dir: .chemmind_memory
+  verbose: true
