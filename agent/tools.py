@@ -52,8 +52,10 @@ class ToolRegistry:
 
     def _register_all(self) -> None:
         """Register all ChemMind L1 tools."""
-        self._reg("boltz2",         "tools.structure.boltz2",       "run_boltz2",
-            "Predict protein/ligand/antibody-antigen structure and binding affinity with Boltz-2")
+        self._reg("boltz2",           "tools.structure.boltz2",                "run_boltz2",
+            "Predict protein/ligand/antibody-antigen 3D structure with Boltz-2 (also returns affinity)")
+        self._reg("boltz2_affinity",  "tools.binding_affinity.boltz2_affinity", "run_boltz2_affinity",
+            "Predict binding affinity ΔG (kcal/mol) for one or a batch of ligands using Boltz-2")
         self._reg("esmfold",        "tools.structure.esmfold",      "run_esmfold",
             "Fast protein structure prediction with ESMFold (no MSA required)")
         self._reg("colabfold",      "tools.structure.colabfold",    "run_colabfold",
@@ -86,18 +88,24 @@ class ToolRegistry:
             "High-throughput GPU-accelerated virtual screening with AutoDock-GPU")
         self._reg("diffdock",       "tools.docking.diffdock",       "run_diffdock",
             "Diffusion-based blind docking and pose prediction with DiffDock")
+        self._reg("vina",           "tools.docking.vina",           "run_vina",
+            "AutoDock Vina / Vina-GPU 2.0 docking — CPU-friendly baseline and flexible receptor docking")
+        self._reg("rdkit_enum",     "tools.enumeration.rdkit_enum", "run_rdkit_enum",
+            "R-group, BRICS, and RECAP scaffold enumeration to generate focused analogue libraries")
+        self._reg("library_search", "tools.enumeration.library_search", "run_library_search",
+            "Search Enamine REAL or ZINC22 make-on-demand libraries by similarity or substructure")
         self._reg("openmm",         "tools.md_fep.openmm",          "run_openmm",
             "Molecular dynamics simulation with OpenMM (CUDA, NVT/NPT/metadynamics)")
-        self._reg("fep_openfe",     "tools.md_fep.fep_openfe",      "run_fep_openfe",
-            "Relative free energy perturbation with OpenFE and Lomap perturbation graph")
+        self._reg("fep_openfe",     "tools.binding_affinity.fep_openfe",    "run_fep_openfe",
+            "Relative free energy perturbation (RBFE) with OpenFE and LoMap perturbation network")
         self._reg("mdanalysis",     "tools.md_fep.mdanalysis",      "run_mdanalysis",
             "MD trajectory analysis: RMSD, RMSF, contact maps, pocket volume")
         self._reg("rdkit_props",    "tools.admet.rdkit_props",      "run_rdkit_props",
             "Compute QED, SA score, Lipinski, PAINS filters and Morgan fingerprints")
         self._reg("admetlab3",      "tools.admet.admetlab3",        "run_admetlab3",
             "Predict 70+ ADMET endpoints via ADMETlab3 API (batch mode)")
-        self._reg("deeppurpose",    "tools.admet.deeppurpose",      "run_deeppurpose",
-            "Drug-target interaction prediction and pIC50 estimation with DeepPurpose")
+        self._reg("deeppurpose",    "tools.binding_affinity.deeppurpose",   "run_deeppurpose",
+            "Drug-target binding affinity (pIC50/Kd) prediction with DeepPurpose DTI models")
         self._reg("askcos",         "tools.data.askcos",            "run_askcos",
             "Retrosynthetic route planning and buyability scoring with ASKCOS")
         self._reg("chembl",         "tools.data.chembl",            "run_chembl",
