@@ -1,0 +1,61 @@
+[project]
+name = "chemmind"
+version = "0.1.0"
+description = "ChemMind — LLM drug design agent with hierarchical skill architecture"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+
+dependencies = [
+    "anthropic>=0.30",
+    "chromadb>=0.5",
+    "rdkit>=2024.3",
+    "requests>=2.32",
+    "pyyaml>=6.0",
+    "click>=8.1",
+]
+
+[project.optional-dependencies]
+structure = [
+    "boltz>=0.4",
+    "esm>=3.0",
+]
+biologics = [
+    "igfold>=0.3",
+    "fair-esm>=2.0",
+]
+docking = [
+    "meeko>=0.5",
+    "vina>=1.2",
+]
+md = [
+    "openmm>=8.1",
+    "mdanalysis>=2.7",
+    "openfe>=1.0",
+]
+admet = [
+    "deepchem>=2.8",
+]
+all = [
+    "chemmind[structure,biologics,docking,md,admet]",
+]
+dev = [
+    "pytest>=8.0",
+    "ruff>=0.4",
+    "mypy>=1.10",
+]
+
+[project.scripts]
+chemmind = "agent.cli:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.mypy]
+python_version = "3.11"
+ignore_missing_imports = true
