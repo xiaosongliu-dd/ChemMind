@@ -94,6 +94,10 @@ class ToolRegistry:
             "R-group, BRICS, and RECAP scaffold enumeration to generate focused analogue libraries")
         self._reg("library_search", "tools.enumeration.library_search", "run_library_search",
             "Search Enamine REAL or ZINC22 make-on-demand libraries by similarity or substructure")
+        self._reg("ligand_filter",  "tools.filtering.ligand_filter", "run_ligand_filter",
+            "Flag PAINS/BRENK/reactive structural alerts on SMILES (single or batch) using RDKit FilterCatalog")
+        self._reg("ligand_viz",     "tools.visualization.ligand_viz", "run_ligand_viz",
+            "Render a self-contained HTML report (structure grid + property table + optional scatter/UMAP) for a ligand set")
         self._reg("openmm",         "tools.md_fep.openmm",          "run_openmm",
             "Molecular dynamics simulation with OpenMM (CUDA, NVT/NPT/metadynamics)")
         self._reg("fep_openfe",     "tools.binding_affinity.fep_openfe",    "run_fep_openfe",
