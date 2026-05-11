@@ -38,14 +38,13 @@ Do NOT use if:
 
 | Field | Type | Required | Description |
 |---|---|---|---|
-| `antigen_pdb` | str | ✓ | Path to antigen PDB file |
-| `epitope_residues` | list[int] | ✓ | Residue numbers on antigen to target |
-| `antibody_type` | str | — | `"scfv"` (default) or `"nanobody"` |
-| `n_designs` | int | — | Number of backbones to generate (default 50) |
-| `partial_diffusion` | bool | — | Start from existing framework (default False) |
-| `framework_pdb` | str | — | Required if `partial_diffusion=True` |
-| `hotspot_weights` | dict | — | Per-residue epitope weights (advanced) |
-| `output_dir` | str | — | Where to write PDB outputs |
+| `target_pdb` | str | ✓ | Antigen / target PDB (held fixed during diffusion) |
+| `hotspot_residues` | list[str] | ✓ | Epitope residues on target, format `"<chain><resnum>"`, e.g. `["B25", "B30", "B35"]` |
+| `cdr_lengths` | dict[str, tuple[int,int]] | — | Per-CDR length range, e.g. `{"H3": (8, 15)}`. CDRs not listed use framework lengths (no design). Default: `{"H3": (8, 15)}` |
+| `framework_pdb` | str | — | Optional antibody framework PDB to scaffold onto; if None, generates a full VH backbone de novo |
+| `n_designs` | int | — | Number of antibody backbone designs (default 10) |
+| `use_nim` | bool | — | Use NVIDIA NIM API endpoint (default True) |
+| `nim_api_key` | str | — | Reads `NVIDIA_API_KEY` env if None |
 
 ---
 
@@ -53,75 +52,19 @@ Do NOT use if:
 
 | Field | Type | Description |
 |---|---|---|
-| `backbone_pdbs` | list[str] | Paths to designed antibody backbone PDBs |
-| `n_generated` | int | Number of successful designs |
-| `epitope_contacts` | list[dict] | Per-design contact residue lists |
-| `runtime_s` | float | Wall time |
+| `designs` | list[dict] | `{pdb_path, mean_plddt, rank}` sorted by pLDDT descending |
+| `best_pdb_path` | str \| None | Top-ranked design's PDB path |
+| `n_designs` | int | Number of designs returned |
+| `hotspot_res` | list[str] | Echo of input |
+| `cdr_lengths` | dict | Echo of resolved CDR lengths |
 
 ---
 
-## Execution (Python wrapper)
+## Implementation
 
-```python
-# dependencies = ["rfdiffusion>=1.1", "torch>=2.0"]
+`tools/biologics/rfantibody.py` — `run_rfantibody()`
 
-import subprocess, time, tempfile, json
-from pathlib import Path
-
-def run_rfantibody(
-    antigen_pdb: str,
-    epitope_residues: list[int],
-    antibody_type: str = "scfv",
-    n_designs: int = 50,
-    partial_diffusion: bool = False,
-    framework_pdb: str | None = None,
-    output_dir: str | None = None,
-) -> dict:
-
-    t0 = time.perf_counter()
-    outdir = Path(output_dir or tempfile.mkdtemp(prefix="rfantibody_"))
-    outdir.mkdir(parents=True, exist_ok=True)
-
-    # Build hotspot string from epitope residues, e.g. "A10,A15,A22"
-    hotspot_str = ",".join(f"A{r}" for r in epitope_residues)
-
-    # RFantibody is invoked via the rfdiffusion CLI
-    # see: github.com/RosettaCommons/RFdiffusion/tree/main/examples/antibody
-    cmd = [
-        "python", "-m", "rfdiffusion.run_inference",
-        f"inference.input_pdb={antigen_pdb}",
-        f"inference.num_designs={n_designs}",
-        f"inference.output_prefix={outdir}/design",
-        f"potentials.guiding_potentials=['type:antibody_contacts,weight:1.0,epitope:{hotspot_str}']",
-        "contigmap.contigs=[A1-200]",
-        f"antibody.antibody_type={antibody_type}",
-    ]
-
-    if partial_diffusion and framework_pdb:
-        cmd += [
-            f"diffuser.partial_T=20",
-            f"inference.input_pdb={framework_pdb}",
-        ]
-
-    result = subprocess.run(cmd, capture_output=True, text=True)
-    if result.returncode != 0:
-        raise RuntimeError(f"RFantibody failed:\n{result.stderr}")
-
-    pdbs = sorted(outdir.glob("design_*.pdb"))
-    elapsed = round(time.perf_counter() - t0, 1)
-
-    # Parse per-design contact summary if written by CLI
-    contacts_file = outdir / "contacts.json"
-    contacts = json.loads(contacts_file.read_text()) if contacts_file.exists() else []
-
-    return {
-        "backbone_pdbs":    [str(p) for p in pdbs],
-        "n_generated":      len(pdbs),
-        "epitope_contacts": contacts,
-        "runtime_s":        elapsed,
-        "output_dir":       str(outdir),
-    }
-```
+NIM mode hits the RFdiffusion endpoint (`https://health.api.nvidia.com/v1/biology/ipd/rfdiffusion`) with `model_runner="rf_antibody"`; local mode runs `RFdiffusion/scripts/run_inference.py` with antibody-specific contigs and the `models/rf_antibody.pt` checkpoint.
 
 ---
 
