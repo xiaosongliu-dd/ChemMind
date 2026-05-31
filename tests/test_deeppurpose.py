@@ -9,7 +9,7 @@ from tools.binding_affinity.deeppurpose import _MODEL_UNITS, run_deeppurpose
 
 
 def _mock_deeppurpose(predictions: list[float]):
-    """Build a fake DeepPurpose module stack."""
+    """Build a fake DeepPurpose module stack with correct parent mock attributes."""
     net = MagicMock()
     net.drug_encoding  = "MPNN"
     net.target_encoding = "CNN"
@@ -21,7 +21,22 @@ def _mock_deeppurpose(predictions: list[float]):
     utils_mod = MagicMock()
     utils_mod.data_process_repurpose_virtual_screening.return_value = MagicMock()
 
-    return dti_mod, utils_mod, net
+    # The parent DeepPurpose mock must explicitly expose the submodules as
+    # attributes so that `from DeepPurpose import DTI` gets dti_mod, not an
+    # auto-generated MagicMock attribute.
+    dp_mock = MagicMock()
+    dp_mock.DTI = dti_mod
+    dp_mock.utils = utils_mod
+
+    return dti_mod, utils_mod, net, dp_mock
+
+
+def _patch_dp(dti_mod, utils_mod, dp_mock):
+    return patch.dict("sys.modules", {
+        "DeepPurpose":       dp_mock,
+        "DeepPurpose.DTI":   dti_mod,
+        "DeepPurpose.utils": utils_mod,
+    })
 
 
 # ── import guard ──────────────────────────────────────────────────────────────
@@ -36,9 +51,8 @@ def test_raises_if_deeppurpose_not_installed(imatinib, abl1_fasta):
 # ── single ligand ─────────────────────────────────────────────────────────────
 
 def test_single_ligand_returns_one_prediction(imatinib, abl1_fasta):
-    dti, utils, net = _mock_deeppurpose([8.3])
-    with patch.dict("sys.modules", {"DeepPurpose": MagicMock(), "DeepPurpose.DTI": dti,
-                                     "DeepPurpose.utils": utils}):
+    dti, utils, net, dp = _mock_deeppurpose([8.3])
+    with _patch_dp(dti, utils, dp):
         result = run_deeppurpose(abl1_fasta, imatinib)
 
     assert len(result["predictions"]) == 1
@@ -46,9 +60,8 @@ def test_single_ligand_returns_one_prediction(imatinib, abl1_fasta):
 
 
 def test_single_ligand_best_smiles_matches(imatinib, abl1_fasta):
-    dti, utils, net = _mock_deeppurpose([8.3])
-    with patch.dict("sys.modules", {"DeepPurpose": MagicMock(), "DeepPurpose.DTI": dti,
-                                     "DeepPurpose.utils": utils}):
+    dti, utils, net, dp = _mock_deeppurpose([8.3])
+    with _patch_dp(dti, utils, dp):
         result = run_deeppurpose(abl1_fasta, imatinib)
 
     assert result["best_smiles"] == imatinib
@@ -59,9 +72,8 @@ def test_single_ligand_best_smiles_matches(imatinib, abl1_fasta):
 
 def test_batch_repeats_target_for_each_ligand(all_smiles, abl1_fasta):
     scores = [7.0 + i * 0.1 for i in range(len(all_smiles))]
-    dti, utils, net = _mock_deeppurpose(scores)
-    with patch.dict("sys.modules", {"DeepPurpose": MagicMock(), "DeepPurpose.DTI": dti,
-                                     "DeepPurpose.utils": utils}):
+    dti, utils, net, dp = _mock_deeppurpose(scores)
+    with _patch_dp(dti, utils, dp):
         run_deeppurpose(abl1_fasta, all_smiles)
 
     call_args = utils.data_process_repurpose_virtual_screening.call_args[0]
@@ -72,9 +84,8 @@ def test_batch_repeats_target_for_each_ligand(all_smiles, abl1_fasta):
 
 def test_batch_n_ligands_matches_input(all_smiles, abl1_fasta):
     scores = [7.0] * len(all_smiles)
-    dti, utils, net = _mock_deeppurpose(scores)
-    with patch.dict("sys.modules", {"DeepPurpose": MagicMock(), "DeepPurpose.DTI": dti,
-                                     "DeepPurpose.utils": utils}):
+    dti, utils, net, dp = _mock_deeppurpose(scores)
+    with _patch_dp(dti, utils, dp):
         result = run_deeppurpose(abl1_fasta, all_smiles)
 
     assert result["n_ligands"] == len(all_smiles)
@@ -84,9 +95,8 @@ def test_batch_n_ligands_matches_input(all_smiles, abl1_fasta):
 
 def test_predictions_sorted_descending(all_smiles, abl1_fasta):
     scores = [6.0, 9.5, 7.2, 8.8, 5.1, 10.0][:len(all_smiles)]
-    dti, utils, net = _mock_deeppurpose(scores)
-    with patch.dict("sys.modules", {"DeepPurpose": MagicMock(), "DeepPurpose.DTI": dti,
-                                     "DeepPurpose.utils": utils}):
+    dti, utils, net, dp = _mock_deeppurpose(scores)
+    with _patch_dp(dti, utils, dp):
         result = run_deeppurpose(abl1_fasta, all_smiles)
 
     values = [p["predicted_value"] for p in result["predictions"]]
@@ -95,9 +105,8 @@ def test_predictions_sorted_descending(all_smiles, abl1_fasta):
 
 def test_best_value_is_max(all_smiles, abl1_fasta):
     scores = [6.0, 9.5, 7.2, 8.8, 5.1, 10.0][:len(all_smiles)]
-    dti, utils, net = _mock_deeppurpose(scores)
-    with patch.dict("sys.modules", {"DeepPurpose": MagicMock(), "DeepPurpose.DTI": dti,
-                                     "DeepPurpose.utils": utils}):
+    dti, utils, net, dp = _mock_deeppurpose(scores)
+    with _patch_dp(dti, utils, dp):
         result = run_deeppurpose(abl1_fasta, all_smiles)
 
     assert result["best_value"] == pytest.approx(max(scores))
@@ -106,9 +115,8 @@ def test_best_value_is_max(all_smiles, abl1_fasta):
 # ── output schema ─────────────────────────────────────────────────────────────
 
 def test_output_has_required_keys(imatinib, abl1_fasta):
-    dti, utils, net = _mock_deeppurpose([8.0])
-    with patch.dict("sys.modules", {"DeepPurpose": MagicMock(), "DeepPurpose.DTI": dti,
-                                     "DeepPurpose.utils": utils}):
+    dti, utils, net, dp = _mock_deeppurpose([8.0])
+    with _patch_dp(dti, utils, dp):
         result = run_deeppurpose(abl1_fasta, imatinib)
 
     for key in ("predictions", "n_ligands", "model", "units", "best_smiles", "best_value"):
@@ -116,9 +124,8 @@ def test_output_has_required_keys(imatinib, abl1_fasta):
 
 
 def test_prediction_entry_has_required_keys(imatinib, abl1_fasta):
-    dti, utils, net = _mock_deeppurpose([8.0])
-    with patch.dict("sys.modules", {"DeepPurpose": MagicMock(), "DeepPurpose.DTI": dti,
-                                     "DeepPurpose.utils": utils}):
+    dti, utils, net, dp = _mock_deeppurpose([8.0])
+    with _patch_dp(dti, utils, dp):
         result = run_deeppurpose(abl1_fasta, imatinib)
 
     pred = result["predictions"][0]
@@ -129,9 +136,8 @@ def test_prediction_entry_has_required_keys(imatinib, abl1_fasta):
 # ── model units ───────────────────────────────────────────────────────────────
 
 def test_ic50_model_reports_pic50_units(imatinib, abl1_fasta):
-    dti, utils, net = _mock_deeppurpose([8.0])
-    with patch.dict("sys.modules", {"DeepPurpose": MagicMock(), "DeepPurpose.DTI": dti,
-                                     "DeepPurpose.utils": utils}):
+    dti, utils, net, dp = _mock_deeppurpose([8.0])
+    with _patch_dp(dti, utils, dp):
         result = run_deeppurpose(abl1_fasta, imatinib, model="MPNN_CNN_BindingDB_IC50")
 
     assert result["units"] == "pIC50"
@@ -139,9 +145,8 @@ def test_ic50_model_reports_pic50_units(imatinib, abl1_fasta):
 
 
 def test_kd_model_reports_pkd_units(imatinib, abl1_fasta):
-    dti, utils, net = _mock_deeppurpose([8.0])
-    with patch.dict("sys.modules", {"DeepPurpose": MagicMock(), "DeepPurpose.DTI": dti,
-                                     "DeepPurpose.utils": utils}):
+    dti, utils, net, dp = _mock_deeppurpose([8.0])
+    with _patch_dp(dti, utils, dp):
         result = run_deeppurpose(abl1_fasta, imatinib,
                                  model="Transformer_CNN_BindingDB_Kd")
 

@@ -3,7 +3,7 @@ from __future__ import annotations
 import math
 import tempfile
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -31,13 +31,9 @@ def _make_ligand_dir(tmp_path: Path, n: int = 2) -> Path:
 
 def test_passes_fld_path(tmp_path):
     lig_dir = _make_ligand_dir(tmp_path)
-    with patch("subprocess.run") as mock_run, \
-         patch("tools.docking.autodock_gpu.Path.glob", return_value=[]):
-        mock_run.return_value = None
-        try:
-            run_autodock_gpu("receptor.pdbqt", str(lig_dir), "/data/receptor.gpf")
-        except Exception:
-            pass
+    with patch("subprocess.run") as mock_run:
+        mock_run.return_value = MagicMock(returncode=0)
+        run_autodock_gpu("receptor.pdbqt", str(lig_dir), "/data/receptor.gpf")
     cmd = mock_run.call_args[0][0]
     assert "--ffile" in cmd
     assert cmd[cmd.index("--ffile") + 1] == "/data/receptor.maps.fld"
@@ -45,26 +41,18 @@ def test_passes_fld_path(tmp_path):
 
 def test_passes_nrun(tmp_path):
     lig_dir = _make_ligand_dir(tmp_path)
-    with patch("subprocess.run") as mock_run, \
-         patch("tools.docking.autodock_gpu.Path.glob", return_value=[]):
-        mock_run.return_value = None
-        try:
-            run_autodock_gpu("receptor.pdbqt", str(lig_dir), "r.gpf", n_runs=50)
-        except Exception:
-            pass
+    with patch("subprocess.run") as mock_run:
+        mock_run.return_value = MagicMock(returncode=0)
+        run_autodock_gpu("receptor.pdbqt", str(lig_dir), "r.gpf", n_runs=50)
     cmd = mock_run.call_args[0][0]
     assert cmd[cmd.index("--nrun") + 1] == "50"
 
 
 def test_passes_heuristics_flag(tmp_path):
     lig_dir = _make_ligand_dir(tmp_path)
-    with patch("subprocess.run") as mock_run, \
-         patch("tools.docking.autodock_gpu.Path.glob", return_value=[]):
-        mock_run.return_value = None
-        try:
-            run_autodock_gpu("receptor.pdbqt", str(lig_dir), "r.gpf", heuristics=True)
-        except Exception:
-            pass
+    with patch("subprocess.run") as mock_run:
+        mock_run.return_value = MagicMock(returncode=0)
+        run_autodock_gpu("receptor.pdbqt", str(lig_dir), "r.gpf", heuristics=True)
     cmd = mock_run.call_args[0][0]
     assert "--heuristics" in cmd
     assert cmd[cmd.index("--heuristics") + 1] == "1"
@@ -72,27 +60,19 @@ def test_passes_heuristics_flag(tmp_path):
 
 def test_no_heuristics_flag_when_false(tmp_path):
     lig_dir = _make_ligand_dir(tmp_path)
-    with patch("subprocess.run") as mock_run, \
-         patch("tools.docking.autodock_gpu.Path.glob", return_value=[]):
-        mock_run.return_value = None
-        try:
-            run_autodock_gpu("receptor.pdbqt", str(lig_dir), "r.gpf", heuristics=False)
-        except Exception:
-            pass
+    with patch("subprocess.run") as mock_run:
+        mock_run.return_value = MagicMock(returncode=0)
+        run_autodock_gpu("receptor.pdbqt", str(lig_dir), "r.gpf", heuristics=False)
     cmd = mock_run.call_args[0][0]
     assert "--heuristics" not in cmd
 
 
 def test_custom_binary(tmp_path):
     lig_dir = _make_ligand_dir(tmp_path)
-    with patch("subprocess.run") as mock_run, \
-         patch("tools.docking.autodock_gpu.Path.glob", return_value=[]):
-        mock_run.return_value = None
-        try:
-            run_autodock_gpu("r.pdbqt", str(lig_dir), "r.gpf",
-                             autodock_gpu_bin="/usr/local/bin/autodock_gpu_64wi")
-        except Exception:
-            pass
+    with patch("subprocess.run") as mock_run:
+        mock_run.return_value = MagicMock(returncode=0)
+        run_autodock_gpu("r.pdbqt", str(lig_dir), "r.gpf",
+                         autodock_gpu_bin="/usr/local/bin/autodock_gpu_64wi")
     cmd = mock_run.call_args[0][0]
     assert cmd[0] == "/usr/local/bin/autodock_gpu_64wi"
 

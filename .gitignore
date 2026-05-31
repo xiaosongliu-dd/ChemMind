@@ -1,0 +1,42 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+*.egg
+dist/
+build/
+.eggs/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# ChemMind runtime data
+.chemmind_memory/
+*.chroma/
+
+# Test artifacts
+.pytest_cache/
+htmlcov/
+.coverage
+coverage.xml
+
+# Tool output directories (large, reproducible)
+gnina_*/
+adgpu_*/
+igfold_*/
+abodybuilder3_*/
+boltz_*/
+colabfold_*/
+diffsbdd_*/
+molgpt_*/
+reinvent4_*/
+openmm_*/
+
+# Editor
+.DS_Store
+*.swp
+*.swo
