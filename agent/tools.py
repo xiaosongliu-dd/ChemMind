@@ -54,6 +54,10 @@ class ToolRegistry:
         """Register all ChemMind L1 tools."""
         self._reg("alphafold3",       "tools.structure.alphafold3",            "run_alphafold3",
             "Predict any biomolecular complex structure (protein, ligand, DNA, RNA) with AlphaFold 3 — highest accuracy, supports nucleic acids")
+        self._reg("protenix",         "tools.structure.protenix",              "run_protenix",
+            "Predict biomolecular complex structure with Protenix (ByteDance AF3 reimplementation, Apache 2.0, no license restrictions)")
+        self._reg("chai1",            "tools.structure.chai1",                 "run_chai1",
+            "Predict biomolecular complex structure with Chai-1 (Python API, auto-downloads weights, supports glycoproteins)")
         self._reg("boltz2",           "tools.structure.boltz2",                "run_boltz2",
             "Predict protein/ligand/antibody-antigen 3D structure with Boltz-2 (also returns affinity)")
         self._reg("boltz2_affinity",  "tools.binding_affinity.boltz2_affinity", "run_boltz2_affinity",
