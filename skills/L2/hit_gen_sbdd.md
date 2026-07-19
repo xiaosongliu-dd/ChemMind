@@ -73,7 +73,7 @@ Keep `passed == True` only. Typical retention: 80–95% of physicochemical-passe
 Dock all ADMET-passed molecules (up to 200; if > 200, sort by QED descending and take top 200):
 ```
 gnina(
-    protein_pdb=pdb_path,
+    receptor_pdb=pdb_path,
     ligand_smiles=passed_smiles,       # batch mode
     center_x=center_x, center_y=center_y, center_z=center_z,
     box_size=box_size,                 # sqrt(pocket.volume) * 1.5
@@ -85,7 +85,7 @@ Sort by `docking_score_kcal_mol` ascending (more negative = better). Take top 20
 
 Fallback if gnina unavailable:
 ```
-vina(protein_pdb=..., ligand_smiles=..., center_x=..., ...)
+vina(receptor_pdbqt=..., ligand_smiles=..., center_x=..., ...)
 ```
 
 ### Step 6 — Affinity rescoring (top-20)

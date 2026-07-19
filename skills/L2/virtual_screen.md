@@ -36,8 +36,8 @@ ADMET) maximises throughput while controlling compute cost.
 
 **1a. If a PDB ID or file is provided:**
 ```
-pdb_fetch(pdb_id=pdb_id, include_ligands=True)
-→ {pdb_path: str, sequence: str, ligands: [{smiles, name, center_x, center_y, center_z}]}
+pdb_fetch(pdb_id=pdb_id)
+→ {pdb_path: str, title: str, ligands: [{id, name, formula}]}
 ```
 If a co-crystal ligand is present, store its geometric center — use it as the binding-site
 seed in Step 2 instead of running pocket detection.
@@ -98,12 +98,12 @@ no pocket, ask user to provide binding site coordinates manually.
 **Option A — commercial library (similarity search):**
 ```
 library_search(
+    smiles=reference_smiles,
     library="enamine_real",         # or "zinc22"
-    query_smiles=reference_smiles,  # omit for diverse random subset
-    n_results=10000,
-    similarity_threshold=0.4,
+    max_results=10000,
+    tanimoto_threshold=0.4,
 )
-→ {smiles: list[str], catalog_ids: list[str], prices: list[float]}
+→ {smiles_list: list[str], catalog_ids: list[str], n_returned: int}
 ```
 If no reference SMILES: mine known actives first —
 ```
@@ -306,7 +306,7 @@ autodock_gpu unavailable or no GPU:
   → Fall back to vina (Route B) regardless of library size
 
 boltz2_affinity fails or times out:
-  → deeppurpose(smiles=top20_smiles, target_fasta=target_sequence) as fallback
+  → deeppurpose(protein_sequence=target_sequence, ligand_smiles=top20_smiles) as fallback
   → If also unavailable: rank by gnina cnn_affinity only
 
 ≥ 8 / 10 final compounds have hERG risk ≥ Medium:

@@ -57,7 +57,7 @@ proteinmpnn(
     pdb_path=backbone_pdb,
     chains_to_design=["H", "L"],   # or ["H"] for nanobody
     n_sequences=8,
-    sampling_temperature=0.1,
+    sampling_temp=0.1,
 )
 → {sequences: [{"H": <vh_seq>, "L": <vl_seq>}, ...], scores: [...]}
 ```
@@ -99,9 +99,10 @@ Keep candidates with `iptm_score > 0.6`. Typical retention: 5–10 candidates.
 
 ### Step 6 — Developability / ADMET filtering
 ```
-admetlab3(smiles=None, sequences=top_ab_sequences)
+admetlab3(smiles=warhead_smiles)   # only if antibody carries a small-molecule warhead (ADC)
 ```
-Note: ADMETlab3 for biologics is limited — check manually or with BioPharma Finder:
+Note: ADMETlab3 does not accept antibody sequences — it is limited to small molecules.
+For sequence-level developability checks use BioPharma Finder or manual assessment:
 - Hydrophobicity index (HI) < 0.5
 - Net charge at pH 7 between −3 and +3
 - No unpaired cysteines in VH/VL

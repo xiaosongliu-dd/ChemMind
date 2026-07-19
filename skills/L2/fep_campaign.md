@@ -35,7 +35,7 @@ Confirm: all compounds are congeneric (same core scaffold, ≤ 10 heavy-atom dif
 
 Verify: docked poses exist for all compounds in the series. If missing:
 ```
-gnina(protein_pdb=target_pdb, ligand_smiles=missing_smiles, exhaustiveness=16)
+gnina(receptor_pdb=target_pdb, ligand_smiles=missing_smiles, exhaustiveness=16)
 → {pose_pdb}
 ```
 
@@ -69,10 +69,11 @@ Gate: protein backbone RMSD plateau < 2 Å over last 500 ps. If not plateaued, e
 ```
 fep_openfe(
     protein_pdb=equilibrated_structure,
-    ligand_smiles=lead_series_smiles,
+    ligand_sdf_dir=ligand_sdf_dir,           # directory of SDF files, one per ligand
+    reference_ligand_sdf=ref_sdf,            # SDF of the reference/anchor compound
     n_replicas=3,
-    lambda_windows=12,
-    simulation_time_ns=5.0,
+    n_lambda=11,
+    work_dir=workdir,
 )
 → {
     ddg_predictions: [{smiles_A, smiles_B, ddg_kcal_mol, uncertainty}],

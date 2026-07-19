@@ -71,7 +71,7 @@ proteinmpnn(
     pdb_path=backbone_pdb,
     chains_to_design=["B"],        # peptide chain (B by convention)
     n_sequences=8,
-    sampling_temperature=0.1,
+    sampling_temp=0.1,
 )
 → {sequences: [<peptide_seq>, ...], scores: [...]}
 ```
@@ -93,8 +93,7 @@ Filter: `mean_plddt > 75` and `ptm_scores[0] > 0.6`.
 ```
 boltz2_affinity(
     protein_fasta=target_fasta,
-    ligand_smiles=None,
-    antibody_fasta=peptide_fasta,  # peptide treated as "antibody" in Boltz-2
+    ligand_smiles=peptide_to_smiles(peptide_seq),  # convert peptide sequence → SMILES
 )
 → {affinity_kcal_mol, iptm_score}
 ```

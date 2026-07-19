@@ -52,8 +52,8 @@ Use the top-20 most potent actives (highest `pchembl_value`) as R-group enumerat
 rdkit_enum(
     smiles=hit_smiles,
     mode="brics",             # BRICS decomposition + R-group replacement
-    library_smiles=sar_actives,
-    max_products=2000,
+    rgroup_smiles=sar_actives,
+    max_compounds=2000,
 )
 → {smiles: list[str], n_products}
 ```
@@ -87,7 +87,7 @@ Use `"strict"` preset (PAINS + BRENK + NIH + ZINC) for lead opt (more stringent 
 ### Step 7 — Docking (≤ 500 molecules)
 ```
 gnina(
-    protein_pdb=pdb_path,
+    receptor_pdb=pdb_path,
     ligand_smiles=passed_smiles,
     center_x=..., center_y=..., center_z=...,
     box_size=box_size,
