@@ -52,6 +52,12 @@ class ToolRegistry:
 
     def _register_all(self) -> None:
         """Register all ChemMind L1 tools."""
+        self._reg("alphafold3",       "tools.structure.alphafold3",            "run_alphafold3",
+            "Predict any biomolecular complex structure (protein, ligand, DNA, RNA) with AlphaFold 3 — highest accuracy, supports nucleic acids")
+        self._reg("protenix",         "tools.structure.protenix",              "run_protenix",
+            "Predict biomolecular complex structure with Protenix (ByteDance AF3 reimplementation, Apache 2.0, no license restrictions)")
+        self._reg("chai1",            "tools.structure.chai1",                 "run_chai1",
+            "Predict biomolecular complex structure with Chai-1 (Python API, auto-downloads weights, supports glycoproteins)")
         self._reg("boltz2",           "tools.structure.boltz2",                "run_boltz2",
             "Predict protein/ligand/antibody-antigen 3D structure with Boltz-2 (also returns affinity)")
         self._reg("boltz2_affinity",  "tools.binding_affinity.boltz2_affinity", "run_boltz2_affinity",
@@ -116,6 +122,14 @@ class ToolRegistry:
             "Query ChEMBL for bioactivity data, SAR analysis and target information")
         self._reg("pdb_fetch",      "tools.data.pdb_fetch",         "run_pdb_fetch",
             "Fetch PDB structures, SIFTS annotations and ligand data from RCSB")
+        self._reg("pubmed",         "tools.data.pubmed",            "run_pubmed",
+            "Search PubMed for literature: abstracts, authors, DOIs via NCBI Entrez API")
+        self._reg("bindingdb",      "tools.data.bindingdb",         "run_bindingdb",
+            "Query BindingDB for experimental IC50/Ki/Kd binding affinities by target, UniProt ID, or SMILES")
+        self._reg("prolif",         "tools.analysis.prolif",        "run_prolif",
+            "Compute protein-ligand interaction fingerprint (IFP) using ProLIF — H-bonds, hydrophobic, ionic, π-stacking contacts per residue")
+        self._reg("equiscore",      "tools.analysis.equiscore",     "run_equiscore",
+            "Consensus docking scorer: normalise and combine Vina, GNINA, Boltz-2, and ProLIF scores into a single weighted rank")
 
     def _reg(self, name: str, module: str, fn_name: str, description: str) -> None:
         """Lazy-import helper — tool modules are only loaded when first called."""

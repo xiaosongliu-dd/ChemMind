@@ -36,8 +36,12 @@ md = [
 admet = [
     "deepchem>=2.8",
 ]
+analysis = [
+    "prolif>=2.0",
+    "MDAnalysis>=2.7",
+]
 all = [
-    "chemmind[structure,biologics,docking,md,admet]",
+    "chemmind[structure,biologics,docking,md,admet,analysis]",
 ]
 dev = [
     "pytest>=8.0",

@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import pytest
+
+pytest.importorskip("rdkit")
 from rdkit import Chem
 
 from tools.enumeration.rdkit_enum import (

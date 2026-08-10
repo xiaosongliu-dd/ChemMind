@@ -236,29 +236,40 @@ class ChemMindAgent:
             )
 
     def _flatten_response(self, resp) -> str:
-        """Collapse Anthropic content blocks (text + tool_use) to one string."""
-        parts = []
+        """Collapse Anthropic content blocks (text + tool_use) to one string.
+
+        Tool-use JSON always comes before any accompanying text so that
+        _parse_response can detect it on the first line regardless of whether
+        Claude prefixed the call with a reasoning sentence.
+        """
+        tool_parts: list[str] = []
+        text_parts: list[str] = []
         for block in resp.content:
             if block.type == "text":
-                parts.append(block.text)
+                text_parts.append(block.text)
             elif block.type == "tool_use":
-                parts.append(json.dumps({
+                tool_parts.append(json.dumps({
                     "action":       block.name,
                     "action_input": block.input,
                 }))
-        return "\n".join(parts)
+        return "\n".join(tool_parts + text_parts)
 
     def _parse_response(self, response: str) -> dict:
         """
         Parse LLM output into one of two shapes:
           {"type": "tool_call",    "action": str, "action_input": dict, "thought": str}
           {"type": "final_answer", "content": str}
+
+        Scans the first non-empty line for a JSON tool call so that mixed
+        responses (tool JSON followed by a reasoning sentence) are handled
+        correctly after _flatten_response reorders blocks.
         """
         text = response.strip()
+        first_line = next((ln.strip() for ln in text.splitlines() if ln.strip()), "")
 
-        if text.startswith("{"):
+        if first_line.startswith("{"):
             try:
-                data = json.loads(text)
+                data = json.loads(first_line)
                 if "action" in data:
                     return {
                         "type":         "tool_call",
