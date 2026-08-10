@@ -67,7 +67,7 @@ def run_askcos(
     data = resp.json()
     runtime = round(time.perf_counter() - t0, 1)
 
-    raw_routes = data.get("routes") or data.get("trees") or []
+    raw_routes = data.get("result") or data.get("routes") or data.get("trees") or []
     routes = [_parse_route(r) for r in raw_routes]
     routes.sort(key=lambda r: -(r["overall_score"] or 0))
 
